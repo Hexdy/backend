@@ -1,50 +1,32 @@
 <?php
 echo "hola";
 
-class QueryMethod{
-  private $connect, $table, $values, $columns, $identifiers;
-  public function __construct($connect, $table, $operation, $values=[], $identifiers=[], $columns=[])
+class Query{
+  private $connect;
+  public function __construct($connect, $table, $values=[], $identifiers=[], $columns=[])
   {
   $this->connect = $connect;
-  $this->table = $table;
-  $this->values = $values; 
-  $this->columns = $columns; 
-  //values y columns siempre seran listas, sin duda
-  $this->identifiers = $identifiers;
 
   //CRUD = C:0, R:1 (varia si hay o no identifier), U:2, D:3
-  switch ($operation) {
-    case 0:
-        break;
-    case 1:
 
-        break;
-    case 2:
-
-        break;
-    
-    case 3:
-
-        break;
-
-}
 
   }
 
   //ej: QueryCreator($mySqli, $table, )->insert__function();
-  private function insert_function(){
+  private function insert_function($table, $values=[], $columns=[]){
     
     $string = '';
 
     //transforma el array de values en un string ideal para usarlo en sql
-    foreach ($this->values as $element) {
+    foreach ($values as $element) {
         $string .= "'$element', ";
 
     }
     
-    $string = rtrim($string, ', ');
+    $string = rtrim($string, ', '); 
+    $set = $table."(".$columns.")";
 
-    if ($result = $this->connect -> query("INSERT INTO $this->table VALUES ($string)")) {
+    if ($result = $this->connect -> query("INSERT INTO $set VALUES ($string)")) {
       $response  = $result;
       $this->connect->close();  
       return $response;
@@ -53,24 +35,25 @@ class QueryMethod{
   }
 
 
-  private function read_function(){
+  private function read_function($table, $values=[], $identifiers=[], $columns=[]){
   
-    if ($this->identifiers){
+    if ($identifiers){
       $condition='';
-      for ($i=0;$i<count($this->identifiers); $i++){
-      $condition.= "'$this->identifiers[$i]'='$this->values[$i], '";
+      for ($i=0;$i<count($identifiers); $i++){
+      $condition.= "'$identifiers[$i]'='$values[$i], '";
   }
   $condition = rtrim($condition, ', ');
 
-      if ($result = $this->connect -> query("SELECT * FROM $this->table WHERE $condition")) {
+      if ($result = $this->connect -> query("SELECT * FROM $table WHERE $condition")) {
         $response  = $result -> fetch_all();
         $this->connect->close();  
         return $response;
 
     }
     }
+
     else{
-    if ($result = $this->connect -> query("SELECT * FROM $this->table")) {
+    if ($result = $this->connect -> query("SELECT * FROM $table")) {
       $response  = $result -> fetch_all();
       $this->connect->close();  
       return $response;
@@ -85,36 +68,36 @@ class QueryMethod{
     // Esta es medio un embole ya que necesita los valores a cambiar, las casillas a cambiar, el identificador
     //que sera una cantidad de casillas pk, y el valor que han de tener, el cual es parte de columnas y valores
     $string = '';
-    for($i=0; $i<count($this->columns);$i++){
-        $string .= "'$this->values[$i]'='$this->columns[$i]', ";
+    for($i=0; $i<count($columns);$i++){
+        $string .= "'$values[$i]'='$columns[$i]', ";
 
     }
 
     $string = rtrim($string, ', ');
     
     $condition ='';
-    for ($i=0;$i<count($this->identifiers); $i++){
-    $condition.= "'$this->identifiers[$i]'='$this->values[$i], '";
+    for ($i=0;$i<count($identifiers); $i++){
+    $condition.= "'$identifiers[$i]'='$values[$i], '";
 }
 $condition = rtrim($condition, ', ');
-        if ($result = $this->connect -> query("UPDATE $this->table SET $string WHERE $condition")) {
-          $this->connect->close();  
+        if ($result = $connect -> query("UPDATE $table SET $string WHERE $condition")) {
+          $connect->close();  
           $response  = $result;
-          $this->connect->close();  
+          $connect->close();  
           return $response;
     }
 
   }
   private function delete_function(){
     $condition ='';
-    for ($i=0;$i<count($this->identifiers); $i++){
-    $condition.= "'$this->identifiers[$i]'='$this->values[$i], '";
+    for ($i=0;$i<count($identifiers); $i++){
+    $condition.= "'$identifiers[$i]'='$values[$i], '";
 }
 $condition = rtrim($condition, ', ');
-    if ($result = $this->connect -> query("DELETE FROM $this->table WHERE $condition")) {
-      $this->connect->close();  
+    if ($result = $connect -> query("DELETE FROM $table WHERE $condition")) {
+      $connect->close();  
       $response  = $result;
-      $this->connect->close();  
+      $connect->close();  
       return $response;
     }
 
