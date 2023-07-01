@@ -3,17 +3,14 @@ echo "hola";
 
 class Query{
   private $connect;
-  public function __construct($connect, $table, $values=[], $identifiers=[], $columns=[])
+  public function __construct($connect)
   {
   $this->connect = $connect;
-
   //CRUD = C:0, R:1 (varia si hay o no identifier), U:2, D:3
-
-
   }
 
   //ej: QueryCreator($mySqli, $table, )->insert__function();
-  private function insert_function($table, $values=[], $columns=[]){
+  public function insert_function($table, $values=[], $columns=[]){
     
     $string = '';
 
@@ -35,12 +32,12 @@ class Query{
   }
 
 
-  private function read_function($table, $values=[], $identifiers=[], $columns=[]){
+  public function read_function($table, $values=[], $identifiers=[]){
   
     if ($identifiers){
       $condition='';
       for ($i=0;$i<count($identifiers); $i++){
-      $condition.= "'$identifiers[$i]'='$values[$i], '";
+      $condition.= "'$identifiers[$i]'='$values[$i]', ";
   }
   $condition = rtrim($condition, ', ');
 
@@ -64,7 +61,7 @@ class Query{
   }
 
 
-  private function update_function($pkeys){
+  public function update_function($table, $values=[], $identifiers=[], $columns=[]){
     // Esta es medio un embole ya que necesita los valores a cambiar, las casillas a cambiar, el identificador
     //que sera una cantidad de casillas pk, y el valor que han de tener, el cual es parte de columnas y valores
     $string = '';
@@ -77,27 +74,28 @@ class Query{
     
     $condition ='';
     for ($i=0;$i<count($identifiers); $i++){
-    $condition.= "'$identifiers[$i]'='$values[$i], '";
+    $condition.= "'$identifiers[$i]'='$values[$i]', ";
 }
 $condition = rtrim($condition, ', ');
-        if ($result = $connect -> query("UPDATE $table SET $string WHERE $condition")) {
-          $connect->close();  
+
+        if ($result = $this->connect -> query("UPDATE $table SET $string WHERE $condition")) {
+          $this->connect->close();  
           $response  = $result;
-          $connect->close();  
+          $this->connect->close();  
           return $response;
     }
 
   }
-  private function delete_function(){
+  public function delete_function($table, $values=[], $identifiers=[]){
     $condition ='';
     for ($i=0;$i<count($identifiers); $i++){
-    $condition.= "'$identifiers[$i]'='$values[$i], '";
+    $condition.= "'$identifiers[$i]'='$values[$i]', ";
 }
 $condition = rtrim($condition, ', ');
-    if ($result = $connect -> query("DELETE FROM $table WHERE $condition")) {
-      $connect->close();  
+    if ($result = $this->connect -> query("DELETE FROM $table WHERE $condition")) {
+      $this->connect->close();  
       $response  = $result;
-      $connect->close();  
+      $this->connect->close();  
       return $response;
     }
 
