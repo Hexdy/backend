@@ -13,10 +13,10 @@ $ctl = new QueryCall($mysqli);
 /*EJEMPLOS:
 
 Usando el formato para select:
-    print_r($ctl->select("tabla", [2], ["id"], ["id", "algo"])->call());
-        Resumen: 
-
     print_r($ctl->insert("tabla", ["algo loqúisimo"], ["algo"])->call());
+
+    print_r($ctl->select("tabla", [2], ["id"], ["id", "algo"])->call());
+        Resumen: (α∈D): ∀ δ, n = δ -> ∀ δ[n] ∃ γ[n]
 
     print_r($ctl->update("tabla", [1, "algo cambiado"], ["id"], ["id", "algo"])->call());
 
