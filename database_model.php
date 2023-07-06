@@ -108,7 +108,7 @@ class QueryCall
     if ($this->query) {
       $result = $this->connect->query($this->query);
       $response  = strtoupper(explode(" ", $this->query)[0]) == "SELECT" ? $result->fetch_all() : $result;
-      $this->connect->close();
+
       return $response;
     }
   }
