@@ -1,5 +1,5 @@
 <?php
-include 'database_model.php';
+include 'base.php';
 $mysqli = new mysqli("localhost", "root", "", "prueba", 3306);
 
 if ($mysqli->connect_errno) {
@@ -9,6 +9,20 @@ if ($mysqli->connect_errno) {
     echo "<h4 style='color:green;'>Se conecto correctamente.</h4>";
 }
 $ctl = new QueryCall($mysqli);
+
+
+function session($token)
+{
+    global $ctl;
+
+    $id = ($ctl->select("inicia", [$token], ["sesion_token"], ["id"])->call())[0];
+
+    if ($id) {
+        $nombre_completo = ($ctl->select("web", [$id], ["id"], ["primer_nombre", "primer_apellido"])->call());
+    }
+
+    return $nombre_completo;
+}
 
 /*EJEMPLOS:
 
