@@ -21,7 +21,7 @@ function session($ctl, $token)
 
     $response = $ctl->setQuery($query)->call();
 
-    if (!datatype($response, "array")) {
+    if (!datatype($response, "array") & count($response) > 0) {
 
         return "500, INTERNAL SERVER ERROR: $response";
     } else {
