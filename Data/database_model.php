@@ -103,13 +103,31 @@ class QueryCall
     return $this;
   }
   ///////////////////////////////////////////////////////////////////////////Calling///////////////////////////////////////////////////////////////////////////
+
   public function call()
   {
     if ($this->query) {
-      $result = $this->connect->query($this->query);
-      $response  = strtoupper(explode(" ", $this->query)[0]) == "SELECT" ? $result->fetch_all() : $result;
-      $this->connect->close();
-      return $response;
+      $queryType = strtoupper(explode(" ", $this->query)[0]);
+
+      if ($queryType === "SELECT") {
+        $result = $this->connect->query($this->query);
+        if ($result) {
+          $response = $result->fetch_all();
+        } else {
+          $response = "Error en la consulta: " . $this->connect->error; // Consulta con error
+        }
+      } else {
+        // Consulta INSERT, UPDATE o DELETE
+        $result = $this->connect->query($this->query);
+        if ($result && isset($this->connect->affected_rows)) {
+          $response = ["OK", 200];
+        } else {
+          $response = "Error en la consulta: " . $this->connect->error;
+        }
+
+        $this->connect->close();
+        return $response;
+      }
     }
   }
 }
@@ -121,4 +139,7 @@ el setter de query, pero los demas son lo más basico.
 select tiene 2 modos, uno con el identifier y otro sin, el sin te traerá los datos sin discriminacion, el otro que seria el search te da la opcion de usar los
 identificadores para buscar de forma discriminada, identificador es un array, donde cada identificador debe corresponder a un valor ($values[n]) en su orden, 
 el primer identificador usara siempre el primer valor, y así, por ahora no podemos usar OR, usara siempre un AND
+
+REGLA:
+  En caso de que la llamada haya sido exitosa (hayan o no lineas afectadas) se devolverá un array pero si no fue exitosa se devolverá un error
 */

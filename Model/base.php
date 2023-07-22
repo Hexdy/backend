@@ -9,3 +9,8 @@ if ($mysqli->connect_errno) {
     echo "<h4 style='color:green;'>Se conecto correctamente.</h4>";
 }
 $ctl = new QueryCall($mysqli);
+
+function base_session($token)
+{
+    return session($token);
+}
