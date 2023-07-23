@@ -3,13 +3,15 @@
 
 class QueryCall
 {
-  private $connect, $query;
-  public function __construct($connect)
+  private $host, $user, $passwd, $database, $port;
+  public $query;
+  public function __construct($host, $user, $passwd, $database, $port)
   {
-    $this->connect = $connect;
-
-    //CRUD = C:0, R:1 (varia si hay o no identifier), U:2, D:3
-
+    $this->host = $host;
+    $this->user = $user;
+    $this->passwd = $passwd;
+    $this->database = $database;
+    $this->port = $port;
   }
 
   //ej: QueryCall($mySqli, $table, )->insert();
@@ -23,12 +25,14 @@ class QueryCall
     $columns_str = "";
     //transforma el array de values en un string ideal para usarlo en sql
     for ($i = 0; $i < count($columns); $i++) {
-      $string .= "'$values[$i]', ";
+      print_r($values[0]);
+      $string .= "'" . $values[$i] . "', ";
       $columns_str .= "$columns[$i], ";
     }
 
-    $string = rtrim($string, ', ');
-    $columns_str = rtrim($columns_str, ', ');
+    $string = substr($string, 0, -2);
+    $columns_str = substr($columns_str, 0, -2);
+
     $set = $table . "(" . $columns_str . ")";
     $this->query = "INSERT INTO $set VALUES ($string) ";
     return $this;
@@ -36,25 +40,26 @@ class QueryCall
 
   ///////////////////////////////////////////////////////////////////////////LECTURA/BUSQUEDA////////////////////////////////////////////////////////////////////////R
 
-  public function select($table, $values = [], $identifiers = [], $columns = [])
+  public function select($table, $columns = [], $values = [], $identifiers = [])
   {
 
     $string = '';
     for ($i = 0; $i < count($columns); $i++) {
       $string .= "$columns[$i], ";
     }
-    $string = rtrim($string, ', ');
+    $string = substr($string, 0, -2);
 
 
     if ($identifiers) {
       $condition = '';
 
       for ($i = 0; $i < count($identifiers); $i++) {
-        $condition .= "$identifiers[$i]='$values[$i]' AND ";
-        $condition = rtrim($condition, 'AND ');
+        $condition .= " $identifiers[$i]='$values[$i]' AND ";
       }
 
-      $this->query = "SELECT $string FROM $table WHERE $condition";
+      $condition = substr($condition, 0, -4);
+
+      $this->query = "SELECT $string FROM $table WHERE$condition";
     } else {
       $this->query = "SELECT $string FROM $table";
     }
@@ -71,13 +76,13 @@ class QueryCall
       $string .= "$columns[$i]='$values[$i]', ";
     }
 
-    $string = rtrim($string, ', ');
+    $string = substr($string, 0, -2);
 
     $condition = '';
     for ($i = 0; $i < count($identifiers); $i++) {
       $condition .= "$identifiers[$i]='$values[$i], '";
     }
-    $condition = rtrim($condition, ', ');
+    $condition = substr($condition, 0, -2);
     $this->query = "UPDATE $table SET $string WHERE $condition";
 
     return $this;
@@ -91,7 +96,7 @@ class QueryCall
     for ($i = 0; $i < count($identifiers); $i++) {
       $condition .= "$identifiers[$i]='$values[$i]', ";
     }
-    $condition = rtrim($condition, ', ');
+    $condition = substr($condition, 0, -2);
 
     $this->query = "DELETE FROM $table WHERE $condition";
     return $this;
@@ -106,28 +111,47 @@ class QueryCall
 
   public function call()
   {
+    $connect = new mysqli(
+      $this->host,
+      $this->user,
+      $this->passwd,
+      $this->database,
+      $this->port
+    );
+
+    if ($connect->connect_errno) {
+      $error =   $connect->connect_error;
+      exit();
+      return $error;
+    }
+
     if ($this->query) {
       $queryType = strtoupper(explode(" ", $this->query)[0]);
 
       if ($queryType === "SELECT") {
-        $result = $this->connect->query($this->query);
+        $result = $connect->query($this->query);
+
         if ($result) {
-          $response = $result->fetch_all();
+          $lists = $result->fetch_all();
+          $response = [];
+          if (gettype($lists[0]) === "array") {
+            foreach ($lists as $subset) {
+              $response = array_merge($response, $subset);
+            }
+          }
         } else {
-          $response = "Error en la consulta: " . $this->connect->error; // Consulta con error
+          $response = "Error en la consulta: " . $connect->error; // Consulta con error
         }
       } else {
         // Consulta INSERT, UPDATE o DELETE
-        $result = $this->connect->query($this->query);
-        if ($result && isset($this->connect->affected_rows)) {
+        $result = $connect->query($this->query);
+        if ($result && isset($connect->affected_rows)) {
           $response = ["OK", 200];
         } else {
-          $response = "Error en la consulta: " . $this->connect->error;
+          $response = "Error en la consulta: " . $connect->error;
         }
-
-        $this->connect->close();
-        return $response;
       }
+      return $response;
     }
   }
 }
