@@ -1,6 +1,5 @@
 <?php
 
-
 class QueryCall
 {
   private $host, $user, $passwd, $database, $port;
@@ -122,7 +121,6 @@ class QueryCall
     if ($connect->connect_errno) {
       $error =   $connect->connect_error;
       exit();
-      return $error;
     }
 
     if ($this->query) {
@@ -134,10 +132,10 @@ class QueryCall
         if ($result) {
           $lists = $result->fetch_all();
           $response = [];
-          if (gettype($lists[0]) === "array") {
-            foreach ($lists as $subset) {
-              $response = array_merge($response, $subset);
-            }
+          if (gettype($lists[0]) === "array" || count($lists) === 1) {
+            $response = $lists[0];
+          } else {
+            $response = $lists;
           }
         } else {
           $response = "Error en la consulta: " . $connect->error; // Consulta con error
