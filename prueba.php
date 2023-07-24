@@ -9,7 +9,26 @@ echo $register . "<br>";
 echo $shop . "<br>";
 echo $database_model . "<br>";
 echo $authorization . "<br>";
+//login_login("cliente10@example.com", "contrasenia10");
+print_r(base_session("ZM7jiFJxQ"));
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/*
 $ctl->setQuery("DELETE inicia, sesion, web
 FROM cliente
 LEFT JOIN inicia ON cliente.id = inicia.cliente_id
@@ -19,7 +38,7 @@ WHERE cliente.email = 'amsdassdsasda';")->call();
 $ctl->delete("cliente", ["amsdassdsasda"], ["email"])->call();
 
 print_r(register_register_web_first("maxi", "da silva", "CI", "5088325", "amsdassdsasda", "asdasddasdas"));
-
+*/
 
 #las peticiones se harán de forma que llegaran a los archivos definidos para cada parte, despues se enviaran a authentication.php para verificar que esten bien formados, de ahi los 
 # redireccionará a la data, creando las llamadas o enviará un error si la autenticacion no fue correcta, entonces tendrémos 3 tipos de errores: error de escritura, error de contingencia y error de no encontrado

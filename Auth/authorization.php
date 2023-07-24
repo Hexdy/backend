@@ -50,7 +50,10 @@ function session(QueryCall $ctl, $token)
         return "400, BAD REQUEST: Wrong data type";
     }
 
-    $query = "SELECT sesion.final_de_sesion,
+    $is_session_active = $ctl->select("sesion", ["estado"], [$token], ["token"])->call();
+
+    if ($is_session_active[0]) {
+        $query = "SELECT sesion.final_de_sesion,
                 sesion.estado,
                 web.primer_nombre, 
                 web.primer_apellido
@@ -60,24 +63,26 @@ function session(QueryCall $ctl, $token)
                 WHERE inicia.sesion_token = '$token';
             ";
 
-    $response = $ctl->setQuery($query)->call();
+        $response = $ctl->setQuery($query)->call();
+        if (!is_array($response) || count($response) === 0 || is_string($response)) {
+            return "404, NOT FOUND: The given TOKEN doesn't exist";
+        } else {
 
-    if (!is_array($response) || count($response) === 0 || is_string($response)) {
-        return "404, NOT FOUND: The given TOKEN doesn't exist";
-    } else {
+            $actualDate = date('Y-m-d H:i:s');
 
-        $actualDate = date('Y-m-d H:i:s');
+            $dbDate = $response[0];
 
-        $dbDate = $response[0];
+            if ($actualDate <= $dbDate) {
+                $newDate = date('Y-m-d H:i:s', strtotime(date('Y-m-d H:i:s') . ' +15 minutes'));
 
-        if ($actualDate <= $dbDate) {
-            $newDate = date('Y-m-d H:i:s', strtotime(date('Y-m-d H:i:s') . ' +15 minutes'));
-
-            $ctl->update("sesion", [$token, $actualDate, $newDate], ["token"], ["token", "ultima_sesion", "final_de_sesion"])->call();
-            return [True, $response[2], $response[3]];
-        } else if ($actualDate > $dbDate) {
-            return session_close($ctl, $token);
+                $ctl->update("sesion", [$token, $actualDate, $newDate], ["token"], ["token", "ultima_sesion", "final_de_sesion"])->call();
+                return [True, $response[2], $response[3]];
+            } else if ($actualDate > $dbDate) {
+                return session_close($ctl, $token);
+            }
         }
+    } else {
+        return [false];
     }
 }
 
@@ -166,7 +171,6 @@ function register_web_first(QueryCall $ctl, $first_name, $first_surname, $doc_ty
     }
 
     $length_verificator = strlen($password) > 6 && strlen($mail) > 6 && $length_verificator;
-    echo $length_verificator;
 
 
     $type_verificator = True;
