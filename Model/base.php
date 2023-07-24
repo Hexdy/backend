@@ -27,6 +27,12 @@ function base_session($token)
     return session($ctl, $token);
 }
 
+function base_session_close($token)
+{
+    global $ctl;
+    return session_close($ctl, $token);
+}
+
 
 /*EJEMPLOS:
 
