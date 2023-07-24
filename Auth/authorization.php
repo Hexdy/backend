@@ -233,7 +233,7 @@ function register_web_second(QueryCall $ctl, $token, $second_name, $second_surna
     }
 
     $user = session($ctl, $token);
-    $id = $ctl->select("inicia", ["cliente_id"], [$token], ["sesion_token"])[0];
+    $id = $ctl->select("inicia", ["cliente_id"], [$token], ["sesion_token"])->call()[0];
     if ($user[0]) {
         return $ctl->update("web", [$id, $second_name, $second_surname], ["cliente_id"], ["cliente_id", "segundo_nombre", "segundo_apellido"])->call();
     } else {
@@ -255,31 +255,41 @@ function show_shop(QueryCall $ctl, string $token)
             $is_session = session($ctl, $token);
             if (is_array($is_session)) { //Si is_session es un array y tiene un valor en 0
                 if ($is_session[0]) {
-                    $id = $ctl->select("inicia", ["id"], [$token], ["sesion_token"])->call();
-                    $favorites = $ctl->select("favorito", ["menu_id"], [$id], ["web_id"]);
+                    $id = $ctl->setQuery("SELECT web.cliente_id
+                    FROM inicia
+                    JOIN cliente ON inicia.cliente_id = cliente.id
+                    JOIN web ON cliente.id = web.cliente_id
+                    WHERE inicia.sesion_token = '0WeGy5MYIpAryN'")->call();
+                    if ($id) {
+                        $favorites = $ctl->select("favorito", ["menu_id"], [$id[0]], ["web_id"])->call();
+                    }
                 }
             }
         }
     }
     $menus = $ctl->setQuery("SELECT * FROM menu")->call();
-
+    $result = [];
     foreach ($menus as $menu) {
-        $id = $ctl->select("conforma", ["vianda_id"], [$menu[0]], ["menu_id"])->call();
-        array_push($menu, $ctl->setQuery("SELECT vianda.nombre, vianda_dieta.dieta
-            FROM vianda
-            JOIN vianda_dieta ON vianda.id = vianda_dieta.vianda_id
-            WHERE vianda.id = '$id'")->call());
+        $id = $ctl->select("conforma", ["vianda_id"], [$menu[0]], ["menu_id"])->call()[0];
+        $food = $ctl->setQuery("SELECT vianda.nombre, vianda_dieta.dieta
+        FROM vianda
+        JOIN vianda_dieta ON vianda.id = vianda_dieta.vianda_id
+        WHERE vianda.id = '$id'")->call();
+        array_push($menu, $food);
+        array_push($result, $menu);
     }
     foreach ($menus as $menu) {
-        if (!is_array($menu) || count($menu) !== 7) {
-            return "400 Bad Request: El formato del menú no es válido.";
+        if (!is_array($menu) || count($menu) !== 6) {
+            print_r($menu);
+            return "400 Bad Request: El formato del menú no es válido";
         }
 
-        if (!is_int($menu[0]) || !is_string($menu[1]) || !is_int($menu[2]) || !is_string($menu[3]) || !is_string($menu[4]) || !is_float($menu[5]) || !is_array($menu[6]) || count($menu[6]) !== 2 || !is_string($menu[6][0]) || !is_string($menu[6][1])) {
-            return "400 Bad Request: El formato del menú no es válido.";
+        if (!is_array($result[6]) && count($result[6]) < 2) {
+
+            return "400 Bad Request: El formato del menú no es válido 2";
         }
     }
-    return [$menus, $favorites];
+    return [$result, $favorites];
     ## menues = [[menu=>id, nombre, calorias, frecuencia,descripcion, precio, [nombre_vianda, dieta_vianda]], [[]]]
 
 }

@@ -9,5 +9,5 @@ $shop = __FILE__;
 function shop_show_shop(string $token = "")
 {
     global $ctl;
-    show_shop($ctl, $token);
+    return show_shop($ctl, $token);
 }

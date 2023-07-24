@@ -9,9 +9,11 @@ echo $register . "<br>";
 echo $shop . "<br>";
 echo $database_model . "<br>";
 echo $authorization . "<br>";
-//login_login("cliente10@example.com", "contrasenia10");
-print_r(base_session("Ka8WYu8A5z"));
-
+//echo login_login("cliente10@example.com", "contrasenia10")[1];
+//print_r(base_session("Ka8WYu8A5z"));
+echo "<pre>";
+print_r(shop_show_shop("0WeGy5MYIpAryN"));
+echo "</pre>";
 
 
 
