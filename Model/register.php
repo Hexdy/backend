@@ -1,7 +1,5 @@
 <?php
-include "base.php";
-include "login.php";
-include "../Data/database_model.php";
+include_once "Auth\authorization.php";
 
 
 function register_register_web_first($first_name, $first_surname, $doc_type, $doc, $mail, $password)

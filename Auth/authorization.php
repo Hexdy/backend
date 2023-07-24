@@ -1,12 +1,12 @@
 <?php
-include "../Data/database_model.php";
+include_once "/xampp/htdocs/php/Data/database_model.php";
 
 function datatype($var, $type)
 {
     return gettype($var) === $type;
 }
 
-function session_close(QueryCall $ctl, $token)
+function session_close($ctl, $token)
 {
     if (isset($ctl, $token)) {
         return "400, BAD REQUEST: Wrong data type";
@@ -35,7 +35,7 @@ function token_generator()
     return $randomText;
 }
 
-function session(QueryCall $ctl, $token)
+function session($ctl, $token)
 {
     if (isset($ctl, $token)) {
         return "400, BAD REQUEST: Wrong data type";
@@ -80,7 +80,7 @@ function session(QueryCall $ctl, $token)
 
 
 
-function register_web_first(QueryCall $ctl, $first_name, $first_surname, $doc_type, $doc, $mail, $password)
+function register_web_first($ctl, $first_name, $first_surname, $doc_type, $doc, $mail, $password)
 {
     $values = func_get_args();
 
@@ -128,7 +128,7 @@ function register_web_first(QueryCall $ctl, $first_name, $first_surname, $doc_ty
     }
 }
 
-function register_web_second(QueryCall $ctl, $token, $second_name, $second_surname, $street, $neighborhood, $city)
+function register_web_second($ctl, $token, $second_name, $second_surname, $street, $neighborhood, $city)
 {
     $values = func_get_args();
 
@@ -164,7 +164,7 @@ function register_web_second(QueryCall $ctl, $token, $second_name, $second_surna
 }
 
 
-function login(QueryCall $ctl, $mail, $passwd, $token = "")
+function login($ctl, $mail, $passwd, $token = "")
 {
     $values = func_get_args();
 
@@ -219,7 +219,7 @@ function login(QueryCall $ctl, $mail, $passwd, $token = "")
     }
 }
 
-function show_shop(QueryCall $ctl, $token = "")
+function show_shop($ctl, $token = "")
 {
     if (isset($ctl,  $token)) {
         return "400 Bad Request: Wrong data type";

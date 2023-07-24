@@ -1,7 +1,5 @@
 <?php
-include "../Auth/authorization.php";
-include "../Data/database_model.php";
-
+include_once "Auth\authorization.php";
 
 $ctl = new QueryCall("localhost", "root", "", "awarena meinu", 3306);
 

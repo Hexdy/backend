@@ -1,7 +1,7 @@
 <?php
-include "./Data/database_model.php";
+include_once "./Data/database_model.php";
 
-$ctl = new QueryCall("localhost", "root", "", "awarena meinu", 3306);
+#$ctl = new QueryCall("localhost", "root", "", "awarena meinu", 3306);
 
 $rest = substr("abcdefghijk", 0, -4);
 echo $rest;

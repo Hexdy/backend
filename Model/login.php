@@ -1,6 +1,5 @@
 <?php
-include "base.php";
-include "../Data/database_model.php";
+include_once "Auth\authorization.php";
 function login_login($mail, $passwd, $token = "")
 {
     global $ctl;
