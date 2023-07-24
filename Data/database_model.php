@@ -1,15 +1,16 @@
 <?php
 
-
 class QueryCall
 {
-  private $connect, $query;
-  public function __construct($connect)
+  private $host, $user, $passwd, $database, $port;
+  public $query;
+  public function __construct($host, $user, $passwd, $database, $port)
   {
-    $this->connect = $connect;
-
-    //CRUD = C:0, R:1 (varia si hay o no identifier), U:2, D:3
-
+    $this->host = $host;
+    $this->user = $user;
+    $this->passwd = $passwd;
+    $this->database = $database;
+    $this->port = $port;
   }
 
   //ej: QueryCall($mySqli, $table, )->insert();
@@ -23,12 +24,14 @@ class QueryCall
     $columns_str = "";
     //transforma el array de values en un string ideal para usarlo en sql
     for ($i = 0; $i < count($columns); $i++) {
-      $string .= "'$values[$i]', ";
+      print_r($values[0]);
+      $string .= "'" . $values[$i] . "', ";
       $columns_str .= "$columns[$i], ";
     }
 
-    $string = rtrim($string, ', ');
-    $columns_str = rtrim($columns_str, ', ');
+    $string = substr($string, 0, -2);
+    $columns_str = substr($columns_str, 0, -2);
+
     $set = $table . "(" . $columns_str . ")";
     $this->query = "INSERT INTO $set VALUES ($string) ";
     return $this;
@@ -36,25 +39,26 @@ class QueryCall
 
   ///////////////////////////////////////////////////////////////////////////LECTURA/BUSQUEDA////////////////////////////////////////////////////////////////////////R
 
-  public function select($table, $values = [], $identifiers = [], $columns = [])
+  public function select($table, $columns = [], $values = [], $identifiers = [])
   {
 
     $string = '';
     for ($i = 0; $i < count($columns); $i++) {
       $string .= "$columns[$i], ";
     }
-    $string = rtrim($string, ', ');
+    $string = substr($string, 0, -2);
 
 
     if ($identifiers) {
       $condition = '';
 
       for ($i = 0; $i < count($identifiers); $i++) {
-        $condition .= "$identifiers[$i]='$values[$i]' AND ";
-        $condition = rtrim($condition, 'AND ');
+        $condition .= " $identifiers[$i]='$values[$i]' AND ";
       }
 
-      $this->query = "SELECT $string FROM $table WHERE $condition";
+      $condition = substr($condition, 0, -4);
+
+      $this->query = "SELECT $string FROM $table WHERE$condition";
     } else {
       $this->query = "SELECT $string FROM $table";
     }
@@ -71,13 +75,13 @@ class QueryCall
       $string .= "$columns[$i]='$values[$i]', ";
     }
 
-    $string = rtrim($string, ', ');
+    $string = substr($string, 0, -2);
 
     $condition = '';
     for ($i = 0; $i < count($identifiers); $i++) {
       $condition .= "$identifiers[$i]='$values[$i], '";
     }
-    $condition = rtrim($condition, ', ');
+    $condition = substr($condition, 0, -2);
     $this->query = "UPDATE $table SET $string WHERE $condition";
 
     return $this;
@@ -91,7 +95,7 @@ class QueryCall
     for ($i = 0; $i < count($identifiers); $i++) {
       $condition .= "$identifiers[$i]='$values[$i]', ";
     }
-    $condition = rtrim($condition, ', ');
+    $condition = substr($condition, 0, -2);
 
     $this->query = "DELETE FROM $table WHERE $condition";
     return $this;
@@ -103,12 +107,48 @@ class QueryCall
     return $this;
   }
   ///////////////////////////////////////////////////////////////////////////Calling///////////////////////////////////////////////////////////////////////////
+
   public function call()
   {
-    if ($this->query) {
-      $result = $this->connect->query($this->query);
-      $response  = strtoupper(explode(" ", $this->query)[0]) == "SELECT" ? $result->fetch_all() : $result;
+    $connect = new mysqli(
+      $this->host,
+      $this->user,
+      $this->passwd,
+      $this->database,
+      $this->port
+    );
 
+    if ($connect->connect_errno) {
+      $error =   $connect->connect_error;
+      exit();
+    }
+
+    if ($this->query) {
+      $queryType = strtoupper(explode(" ", $this->query)[0]);
+
+      if ($queryType === "SELECT") {
+        $result = $connect->query($this->query);
+
+        if ($result) {
+          $lists = $result->fetch_all();
+          $response = [];
+          if (gettype($lists[0]) === "array" || count($lists) === 1) {
+            $response = $lists[0];
+          } else {
+            $response = $lists;
+          }
+        } else {
+          $response = "Error en la consulta: " . $connect->error; // Consulta con error
+        }
+      } else {
+        // Consulta INSERT, UPDATE o DELETE
+        $result = $connect->query($this->query);
+        if ($result && isset($connect->affected_rows)) {
+          $response = ["OK", 200];
+        } else {
+          $response = "Error en la consulta: " . $connect->error;
+        }
+      }
       return $response;
     }
   }
@@ -121,4 +161,7 @@ el setter de query, pero los demas son lo más basico.
 select tiene 2 modos, uno con el identifier y otro sin, el sin te traerá los datos sin discriminacion, el otro que seria el search te da la opcion de usar los
 identificadores para buscar de forma discriminada, identificador es un array, donde cada identificador debe corresponder a un valor ($values[n]) en su orden, 
 el primer identificador usara siempre el primer valor, y así, por ahora no podemos usar OR, usara siempre un AND
+
+REGLA:
+  En caso de que la llamada haya sido exitosa (hayan o no lineas afectadas) se devolverá un array pero si no fue exitosa se devolverá un error
 */
