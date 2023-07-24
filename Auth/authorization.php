@@ -52,7 +52,7 @@ function session(QueryCall $ctl, $token)
 
     $is_session_active = $ctl->select("sesion", ["estado"], [$token], ["token"])->call();
 
-    if ($is_session_active[0]) {
+    if ($is_session_active[0] === "Activa") {
         $query = "SELECT sesion.final_de_sesion,
                 sesion.estado,
                 web.primer_nombre, 

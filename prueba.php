@@ -10,7 +10,7 @@ echo $shop . "<br>";
 echo $database_model . "<br>";
 echo $authorization . "<br>";
 //login_login("cliente10@example.com", "contrasenia10");
-print_r(base_session("ZM7jiFJxQ"));
+print_r(base_session("Ka8WYu8A5z"));
 
 
 
