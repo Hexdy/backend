@@ -1,5 +1,5 @@
 <?php
-include_once "/xampp/htdocs/php/Data/database_model.php";
+include_once "Data/database_model.php";
 
 function datatype($var, $type)
 {
